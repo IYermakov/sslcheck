@@ -27,7 +27,7 @@ def get_SSL_Expiry_Date(host, port=443):
 
 def main(sitesfile):
 
-    sender_email = "notregisterednick@gmail.com"
+    sender_email = "script@gmail.com"
     receiver_email = "notregisterednick@gmail.com"
 #    password = input("Type your password and press enter:")
 
@@ -37,9 +37,9 @@ def main(sitesfile):
     message["To"] = receiver_email
 
     with open(sitesfile, "r") as sites_file:
-        array = []
-	for line in sites_file:
-    	    array.append(line.split("\n", 1)[0])
+      array=[]
+      for line in sites_file:
+        array.append(line.split("\n", 1)[0])
 
     judgementday = datetime.datetime.now() + timedelta(days=7)
     html = """\
@@ -49,19 +49,19 @@ def main(sitesfile):
     """
 #colorize text
     for sites in array:
-	certdate = get_SSL_Expiry_Date(sites, 443)
-	ooo=str(certdate-judgementday).split(',', 1)[0]
-        html=html+"{} will be expired in {}<br>".format(sites,ooo)
+      certdate = get_SSL_Expiry_Date(sites, 443)
+      ooo=str(certdate-judgementday).split(',', 1)[0]
+      html=html+"{} will be expired in {}<br>".format(sites,ooo)
     html=html+"</p></body></html>"
-    print html
+    print(html)
 
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
 #    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-    with smtplib.SMTP('localhost') as server:
+#    with smtplib.SMTP('localhost') as server:
 #	server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
-        server.quit()
+#        server.sendmail(sender_email, receiver_email, message.as_string())
+#        server.quit()
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Sites list')
