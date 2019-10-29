@@ -1,10 +1,7 @@
-#from datetime import datetime
-#from OpenSSL import crypto as c
-
 import ssl
-#import OpenSSL
 import socket
 import datetime
+import argparse
 from datetime import date, timedelta
 from dateutil.parser import parse
 
@@ -16,14 +13,30 @@ def get_SSL_Expiry_Date(host, port=443):
         socket.socket(socket.AF_INET),
         server_hostname=host,
     )
+#if you want to use it as lambda
     conn.settimeout(3.0)
     conn.connect((host, port))
     ssl_info = conn.getpeercert()
 
     ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
     certdate = datetime.datetime.strptime(ssl_info['notAfter'], ssl_date_fmt)
+    return certdate
+#rewrite to read and check args
+def main(sitesfile):
+    with open(sitesfile, "r") as ins:
+        array = []
+	for line in ins:
+    	    array.append(line.split("\n", 1)[0])
+    print array
+
     judgementday = datetime.datetime.now() + timedelta(days=7)
+    for sites in array:
+	certdate = get_SSL_Expiry_Date(sites, 443)
+        print "send letter" if certdate<judgementday else str(certdate-judgementday).split(',', 1)[0]
+    get_SSL_Expiry_Date("adstartmedia.affise.com", 443)
 
-    print "send letter" if certdate<judgementday else "no"
-
-get_SSL_Expiry_Date("adstartmedia.affise.com", 443)
+if __name__=='__main__':
+    parser = argparse.ArgumentParser(description='Sites list')
+    parser.add_argument('sitesfile', type=str, help='File contains list of domains to check')
+    args = parser.parse_args()
+    main(args.sitesfile)
