@@ -44,22 +44,39 @@ def main(sitesfile):
     judgementday = datetime.datetime.now() + timedelta(days=7)
     html = """\
     <html>
-        <body>
-            <p>Hi,<br>
+       <head>
+          <style type="text/css">
+             .tg  {{border-collapse:collapse;border-spacing:0;}}
+             .tg td{{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}}
+             .tg th{{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}}
+             .tg .tg-norm{{text-align:left;vertical-align:top;color:black;}}
+             .tg .tg-alarm{{text-align:left;vertical-align:top;color:red;}}
+          </style>
+       </head>
+       <body>
+          <table class="tg">
     """
-#colorize text
+
     for sites in array:
       certdate = get_SSL_Expiry_Date(sites, 443)
       ooo=str(certdate-judgementday).split(',', 1)[0]
-      html=html+"{} will be expired in {}<br>".format(sites,ooo)
-    html=html+"</p></body></html>"
+#      html=html+"{} will be expired in {}<br>".format(sites,ooo)
+      aaa=int(str(certdate-judgementday).split(' ', 1)[0])
+      if aaa>7:
+        tgstyle="tg-norm"
+      else:
+        tgstyle="tg-alarm"
+      print(tgstyle)
+      html=html+"<tr><th class={}>{}</th></tr> <tr><td class={}>{}</td></tr>".format(tgstyle,sites,tgstyle,ooo)
+
+    html=html+"</table></body></html>"
     print(html)
 
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
 #    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
 #    with smtplib.SMTP('localhost') as server:
-#	server.login(sender_email, password)
+#        server.login(sender_email, password)
 #        server.sendmail(sender_email, receiver_email, message.as_string())
 #        server.quit()
 
