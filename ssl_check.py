@@ -25,10 +25,10 @@ def get_SSL_Expiry_Date(host, port=443):
     certdate = datetime.datetime.strptime(ssl_info['notAfter'], ssl_date_fmt)
     return certdate
 
-def main(sitesfile):
+def main(sitesfile, sender_email, receiver_email):
 
-    sender_email = "script@gmail.com"
-    receiver_email = "notregisterednick@gmail.com"
+#    sender_email = "script@gmail.com"
+#    receiver_email = "receiver@gmail.com"
 #    password = input("Type your password and press enter:")
 
     message = MIMEMultipart("alternative")
@@ -60,13 +60,11 @@ def main(sitesfile):
     for sites in array:
       certdate = get_SSL_Expiry_Date(sites, 443)
       ooo=str(certdate-judgementday).split(',', 1)[0]
-#      html=html+"{} will be expired in {}<br>".format(sites,ooo)
       aaa=int(str(certdate-judgementday).split(' ', 1)[0])
       if aaa>7:
         tgstyle="tg-norm"
       else:
         tgstyle="tg-alarm"
-      print(tgstyle)
       html=html+"<tr><th class={}>{}</th></tr> <tr><td class={}>{}</td></tr>".format(tgstyle,sites,tgstyle,ooo)
 
     html=html+"</table></body></html>"
@@ -75,15 +73,15 @@ def main(sitesfile):
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
 #    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-#    with smtplib.SMTP('localhost') as server:
-#        server.login(sender_email, password)
-#        server.sendmail(sender_email, receiver_email, message.as_string())
-#        server.quit()
+    with smtplib.SMTP('localhost') as server:
+#       server.login(sender_email, password)
+       server.sendmail(sender_email, receiver_email, message.as_string())
+       server.quit()
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Sites list')
     parser.add_argument('sitesfile', type=str, help='File contains list of domains to check')
-#    parser.add_argument('sender', type=str, help='Email sender')
-#    parser.add_argument('receiver', type=str, help='Email receiver')
+    parser.add_argument('sender', type=str, help='Email sender')
+    parser.add_argument('receiver', type=str, help='Email receiver')
     args = parser.parse_args()
-    main(args.sitesfile)
+    main(args.sitesfile, args.sender, args.receiver)
