@@ -22,14 +22,12 @@ def get_SSL_Expiry_Date(host, port=443):
     ssl_info = conn.getpeercert()
 
     ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
-    certdate = datetime.datetime.strptime(ssl_info['notAfter'], ssl_date_fmt)
-    return certdate
+    certdate = datetime.datetime.strptime(str(ssl_info['notAfter']), ssl_date_fmt)
+    issuer = dict(x[0] for x in ssl_info['issuer'])
+    certissuer = issuer['commonName']
+    return certdate, certissuer
 
 def main(sitesfile, sender_email, receiver_email):
-
-#    sender_email = "script@gmail.com"
-#    receiver_email = "receiver@gmail.com"
-#    password = input("Type your password and press enter:")
 
     message = MIMEMultipart("alternative")
     message["Subject"] = "multipart test"
@@ -55,26 +53,24 @@ def main(sitesfile, sender_email, receiver_email):
        </head>
        <body>
           <table class="tg">
+             <tr><th class=th>Certificate</th><th class=th>Issuer</th><th class=th>Days till expire</th></tr>
     """
 
     for sites in array:
-      certdate = get_SSL_Expiry_Date(sites, 443)
-      ooo=str(certdate-judgementday).split(',', 1)[0]
-      aaa=int(str(certdate-judgementday).split(' ', 1)[0])
+      certinfo = get_SSL_Expiry_Date(sites, 443)
+      ooo=str(certinfo[0]-judgementday).split(',', 1)[0]
+      aaa=int(str(certinfo[0]-judgementday).split(' ', 1)[0])
       if aaa>7:
         tgstyle="tg-norm"
       else:
         tgstyle="tg-alarm"
-      html=html+"<tr><th class={}>{}</th></tr> <tr><td class={}>{}</td></tr>".format(tgstyle,sites,tgstyle,ooo)
+      html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{}</td></tr>".format(tgstyle,sites,certinfo[1],tgstyle,ooo)
 
     html=html+"</table></body></html>"
-    print(html)
-
+#    print(html)
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
-#    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
     with smtplib.SMTP('localhost') as server:
-#       server.login(sender_email, password)
        server.sendmail(sender_email, receiver_email, message.as_string())
        server.quit()
 
