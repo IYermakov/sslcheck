@@ -9,23 +9,20 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def get_SSL_Expiry_Date(host, port=443):
-    ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
-
+    ssl.match_hostname = lambda cert, hostname: True
     context = ssl.create_default_context()
-    conn = context.wrap_socket(
-        socket.socket(socket.AF_INET),
-        server_hostname=host,
-    )
-#if you want to use it as lambda
-    conn.settimeout(3.0)
-    conn.connect((host, port))
-    ssl_info = conn.getpeercert()
-
-    ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
-    certdate = datetime.datetime.strptime(str(ssl_info['notAfter']), ssl_date_fmt)
-    issuer = dict(x[0] for x in ssl_info['issuer'])
-    certissuer = issuer['commonName']
-    return certdate, certissuer
+    try:
+      ssock=socket.socket(socket.AF_INET)
+      conn = context.wrap_socket(ssock,server_hostname=host)
+      conn.connect((host, port))
+      ssl_info = conn.getpeercert()
+      ssl_date_fmt = r'%b %d %H:%M:%S %Y %Z'
+      certdate = datetime.datetime.strptime(str(ssl_info['notAfter']), ssl_date_fmt)
+      issuer = dict(x[0] for x in ssl_info['issuer'])
+      certissuer = issuer['commonName']
+      return certdate, certissuer
+    except:
+      return 'connectionerror','connectionerror'
 
 def main(sitesfile, sender_email, receiver_email):
 
@@ -58,16 +55,20 @@ def main(sitesfile, sender_email, receiver_email):
 
     for sites in array:
       certinfo = get_SSL_Expiry_Date(sites, 443)
-      ooo=str(certinfo[0]-judgementday).split(',', 1)[0]
-      aaa=int(str(certinfo[0]-judgementday).split(' ', 1)[0])
-      if aaa>7:
-        tgstyle="tg-norm"
-      else:
+      try:
+        daystoexpire=str(certinfo[0]-judgementday).split(',', 1)[0]
+        aaa=int(str(certinfo[0]-judgementday).split(' ', 1)[0])
+        if aaa>7:
+          tgstyle="tg-norm"
+        else:
+          tgstyle="tg-alarm"
+      except:
         tgstyle="tg-alarm"
-      html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{}</td></tr>".format(tgstyle,sites,certinfo[1],tgstyle,ooo)
+        daystoexpire='NULL'
+      html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{}</td></tr>".format(tgstyle,sites,certinfo[1],tgstyle,daystoexpire)
 
     html=html+"</table></body></html>"
-#    print(html)
+    print(html)
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
     with smtplib.SMTP('localhost') as server:
