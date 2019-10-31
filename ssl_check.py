@@ -41,16 +41,17 @@ def main(sitesfile, sender_email, receiver_email):
     <html>
        <head>
           <style type="text/css">
-             .tg  {{border-collapse:collapse;border-spacing:0;}}
-             .tg td{{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}}
-             .tg th{{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}}
-             .tg .tg-norm{{text-align:left;vertical-align:top;color:black;}}
-             .tg .tg-alarm{{text-align:left;vertical-align:top;color:red;}}
+             .tg .tg-norm{color:black; font-size: 17px;}
+             .tg .tg-alarm{color:black; font-size: 17px; background: red; font-weight: bold;}
+             .tg {width: 100%; margin: 0 auto; max-width: 900px; border-radius: 5px; border: 1px solid black;}
+             tr {text-align: center; height: 40px}
+             .top {background: black; font-size: 20px; font-width: bold; color: white}
+             tbody {background: #dcdbdb;}
           </style>
        </head>
        <body>
           <table class="tg">
-             <tr><th class=th>Certificate</th><th class=th>Issuer</th><th class=th>Days till expire</th></tr>
+             <tr class="top"><th class=th>Certificate</th><th class=th>Issuer</th><th class=th>Days till expire</th></tr>
     """
 
     for sites in array:
