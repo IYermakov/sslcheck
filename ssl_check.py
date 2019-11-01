@@ -7,6 +7,7 @@ from dateutil.parser import parse
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import operator
 
 def get_SSL_Expiry_Date(host, port=443):
     ssl.match_hostname = lambda cert, hostname: True
@@ -36,7 +37,6 @@ def main(sitesfile, sender_email, receiver_email):
       for line in sites_file:
         array.append(line.split("\n", 1)[0])
 
-    judgementday = datetime.datetime.now() + timedelta(days=7)
     html = """\
     <html>
        <head>
@@ -52,20 +52,21 @@ def main(sitesfile, sender_email, receiver_email):
           <table class="tg">
              <tr><th class=th>Certificate</th><th class=th>Issuer</th><th class=th>Days till expire</th></tr>
     """
-
+    d={}
     for sites in array:
       certinfo = get_SSL_Expiry_Date(sites, 443)
       try:
-        daystoexpire=str(certinfo[0]-judgementday).split(',', 1)[0]
-        aaa=int(str(certinfo[0]-judgementday).split(' ', 1)[0])
-        if aaa>7:
-          tgstyle="tg-norm"
-        else:
-          tgstyle="tg-alarm"
+        daystoexpire=int(str(certinfo[0]-datetime.datetime.now()).split(' ', 1)[0])
       except:
+        daystoexpire=999
+      d[sites]=[daystoexpire,certinfo[1]]
+
+    for items in sorted(d.items(), key=operator.itemgetter(1)):
+      if items[1][0]>7:
+        tgstyle="tg-norm"
+      else:
         tgstyle="tg-alarm"
-        daystoexpire='NULL'
-      html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{}</td></tr>".format(tgstyle,sites,certinfo[1],tgstyle,daystoexpire)
+      html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{} days</td></tr>".format(tgstyle,items[0],items[1][1],tgstyle,items[1][0])
 
     html=html+"</table></body></html>"
     print(html)
