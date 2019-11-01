@@ -70,7 +70,7 @@ def main(sitesfile, sender_email, receiver_email):
       html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{} days</td></tr>".format(tgstyle,items[0],items[1][1],tgstyle,items[1][0])
 
     html=html+"</table></body></html>"
-    print(html)
+#    print(html)
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
     with smtplib.SMTP('localhost') as server:
