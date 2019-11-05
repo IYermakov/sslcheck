@@ -25,12 +25,12 @@ def get_SSL_Expiry_Date(host, port=443):
     except:
       return 'connectionerror','connectionerror'
 
-def main(sitesfile, sender_email, receiver_email):
+def main(sitesfile):
 
     message = MIMEMultipart("alternative")
     message["Subject"] = "multipart test"
-    message["From"] = sender_email
-    message["To"] = receiver_email
+    message["From"] = 'script@localhost'
+    receivers = ['user1@gmail.com', 'user2@ua.fm']
 
     with open(sitesfile, "r") as sites_file:
       array=[]
@@ -74,13 +74,15 @@ def main(sitesfile, sender_email, receiver_email):
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
     with smtplib.SMTP('localhost') as server:
-       server.sendmail(sender_email, receiver_email, message.as_string())
+       for receiver in receivers:
+         try:
+           server.sendmail(message["From"], receiver, message.as_string())
+         except:
+           print("error sending message to {}".format(receiver))
        server.quit()
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Sites list')
     parser.add_argument('sitesfile', type=str, help='File contains list of domains to check')
-    parser.add_argument('sender', type=str, help='Email sender')
-    parser.add_argument('receiver', type=str, help='Email receiver')
     args = parser.parse_args()
-    main(args.sitesfile, args.sender, args.receiver)
+    main(args.sitesfile)
