@@ -9,7 +9,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import operator
 
-def get_SSL_Expiry_Date(host, port=443):
+def get_expiry_date(host, port=443):
     ssl.match_hostname = lambda cert, hostname: True
     context = ssl.create_default_context()
     try:
@@ -23,7 +23,7 @@ def get_SSL_Expiry_Date(host, port=443):
       certissuer = issuer['commonName']
       return certdate, certissuer
     except:
-      return 'connectionerror','connectionerror'
+      return 'connection error','connection error'
 
 def main(sitesfile):
 
@@ -55,7 +55,7 @@ def main(sitesfile):
     """
     d={}
     for sites in array:
-      certinfo = get_SSL_Expiry_Date(sites, 443)
+      certinfo = get_expiry_date(sites, 443)
       try:
         daystoexpire=int(str(certinfo[0]-datetime.datetime.now()).split(' ', 1)[0])
       except:
@@ -68,11 +68,13 @@ def main(sitesfile):
       else:
         tgstyle="tg-alarm"
       html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{} days</td></tr>".format(tgstyle,items[0],items[1][1],tgstyle,items[1][0])
-
-    html=html+"</table></body></html>"
+    html=html+"""
+        </table>
+      </body>
+    </html>
+    """
 #    print(html)
     message.attach(MIMEText(html, "html"))
-    context = ssl.create_default_context()
     with smtplib.SMTP('localhost') as server:
        for receiver in receivers:
          try:
