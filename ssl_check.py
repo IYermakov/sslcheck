@@ -10,10 +10,9 @@ from email.mime.multipart import MIMEMultipart
 import operator
 
 def get_expiry_date(host, port=443):
-    ssl.match_hostname = lambda cert, hostname: True
     context = ssl.create_default_context()
     try:
-      ssock=socket.socket(socket.AF_INET)
+      ssock = socket.socket(socket.AF_INET)
       conn = context.wrap_socket(ssock,server_hostname=host)
       conn.connect((host, port))
       ssl_info = conn.getpeercert()
@@ -26,11 +25,6 @@ def get_expiry_date(host, port=443):
       return 'connection error','connection error'
 
 def main(sitesfile):
-
-    message = MIMEMultipart("alternative")
-    message["Subject"] = "multipart test"
-    message["From"] = 'script@localhost'
-    receivers = ['user1@gmail.com', 'user2@ua.fm']
 
     with open(sitesfile, "r") as sites_file:
       array=[]
@@ -67,16 +61,23 @@ def main(sitesfile):
         tgstyle="tg-norm"
       else:
         tgstyle="tg-alarm"
-      html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{} days</td></tr>".format(tgstyle,items[0],items[1][1],tgstyle,items[1][0])
+      html=html+"""<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{} days</td></tr>
+      """.format(tgstyle,items[0],items[1][1],tgstyle,items[1][0])
     html=html+"""
-        </table>
-      </body>
+          </table>
+       </body>
     </html>
     """
-#    print(html)
+    print(html)
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "multipart test"
+    message["From"] = 'script@localhost'
+    message["To"] = ['user1@gmail.com', 'user2@ua.fm']
+
     message.attach(MIMEText(html, "html"))
     with smtplib.SMTP('localhost') as server:
-       for receiver in receivers:
+       for receiver in message["To"]:
          try:
            server.sendmail(message["From"], receiver, message.as_string())
          except:
