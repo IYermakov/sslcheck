@@ -2,7 +2,6 @@ import ssl
 import socket
 import datetime
 import argparse
-from datetime import date, timedelta
 from dateutil.parser import parse
 import smtplib
 from email.mime.text import MIMEText
