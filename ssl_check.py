@@ -9,7 +9,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import operator
 import requests
-import json
+#import json
+import simplejson as json
 from urllib import request, parse
 from string import Template
 
@@ -89,9 +90,9 @@ def main(sitesfile):
                   "text": "*Days till expire*"
               }
           ]
-      }
+      },
     """
-    t = Template('{"type": "section","fields": [{"type": "mrkdwn","text": ${one}   ${two}},{"type": "mrkdwn","text": ${three}}]},')
+    t = Template('{"type": "section","fields": [{"type": "mrkdwn","text": "${one}"   "${two}}",{"type": "mrkdwn","text": "${three}}"]},')
     d={}
     for sites in array:
       certinfo = get_expiry_date(sites, 443)
@@ -114,13 +115,12 @@ def main(sitesfile):
     </html>
     """
 #    print(html)
-    blocks=blocks[:-1]
-    blocks=blocks+"]"
+    blocks=blocks[:-1]+"]"
     test = json.loads(json.dumps(blocks))
-#    print(test)
+    print(test)
 
 #    post_text_to_slack('Dude, this Slack message is coming from my Python program!')
-    post_blocks_to_slack("Script info",test);
+    post_blocks_to_slack("Script info",blocks);
 
 #    message.attach(MIMEText(html, "html"))
 #    with smtplib.SMTP('localhost') as server:
