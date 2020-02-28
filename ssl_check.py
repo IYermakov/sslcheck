@@ -16,22 +16,11 @@ from string import Template
 
 def post_blocks_to_slack(text, blocks = None):
     return requests.post('https://slack.com/api/chat.postMessage', {
-        'token': "xoxp-645743888819-657167488496-973714814352-f2f0ece27354d1ba986fe86cb65417ad",
+        'token': os.environ['SLACK_TOKEN'].encode('utf-8'),
         'channel': "#alerts",
         'username': "script",
         'blocks': json.dumps(blocks) if blocks else None
     }).json()
-
-def post_text_to_slack(text):
-    post = {"text": "{0}".format(text)}
-    try:
-      json_data = json.dumps(post)
-      req = request.Request("https://hooks.slack.com/services/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",
-                            data=json_data.encode('ascii'),
-                            headers={'Content-Type': 'application/json'}) 
-      resp = request.urlopen(req)
-    except Exception as em:
-      print("EXCEPTION: " + str(em)) 
 
 def get_expiry_date(host, port=443):
     ssl.match_hostname = lambda cert, hostname: True
@@ -119,7 +108,6 @@ def main(sitesfile):
     test = json.loads(json.dumps(blocks))
     print(test)
 
-#    post_text_to_slack('Dude, this Slack message is coming from my Python program!')
     post_blocks_to_slack("Script info",blocks);
 
 #    message.attach(MIMEText(html, "html"))
