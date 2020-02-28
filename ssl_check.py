@@ -9,8 +9,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import operator
 import requests
-import json, os
-#import simplejson as json
+import json, os, pprint
 from urllib import request, parse
 from string import Template
 
@@ -105,10 +104,11 @@ def main(sitesfile):
     """
 #    print(html)
     blocks=blocks[:-1]+"]"
-    test = json.loads(json.dumps(blocks))
-    print(test)
+#    print(blocks)
+#    test = json.loads(json.dumps(blocks, indent=4, sort_keys=True))
+#    print(test)
 
-    post_blocks_to_slack("Script info",test)
+    post_blocks_to_slack("Script info",blocks)
 
 #    message.attach(MIMEText(html, "html"))
 #    with smtplib.SMTP('localhost') as server:
