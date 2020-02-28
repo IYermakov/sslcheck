@@ -2,16 +2,41 @@ import ssl
 import socket
 import datetime
 import argparse
+from datetime import date, timedelta
 from dateutil.parser import parse
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import operator
+import requests
+import json
+from urllib import request, parse
+from string import Template
+
+def post_blocks_to_slack(text, blocks = None):
+    return requests.post('https://slack.com/api/chat.postMessage', {
+        'token': "xoxp-645743888819-657167488496-973714814352-f2f0ece27354d1ba986fe86cb65417ad",
+        'channel': "#alerts",
+        'username': "script",
+        'blocks': json.dumps(blocks) if blocks else None
+    }).json()
+
+def post_text_to_slack(text):
+    post = {"text": "{0}".format(text)}
+    try:
+      json_data = json.dumps(post)
+      req = request.Request("https://hooks.slack.com/services/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",
+                            data=json_data.encode('ascii'),
+                            headers={'Content-Type': 'application/json'}) 
+      resp = request.urlopen(req)
+    except Exception as em:
+      print("EXCEPTION: " + str(em)) 
 
 def get_expiry_date(host, port=443):
+    ssl.match_hostname = lambda cert, hostname: True
     context = ssl.create_default_context()
     try:
-      ssock = socket.socket(socket.AF_INET)
+      ssock=socket.socket(socket.AF_INET)
       conn = context.wrap_socket(ssock,server_hostname=host)
       conn.connect((host, port))
       ssl_info = conn.getpeercert()
@@ -24,6 +49,11 @@ def get_expiry_date(host, port=443):
       return 'connection error','connection error'
 
 def main(sitesfile):
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "multipart test"
+    message["From"] = 'script@localhost'
+    receivers = ['user1@gmail.com', 'user2@ua.fm']
 
     with open(sitesfile, "r") as sites_file:
       array=[]
@@ -46,6 +76,22 @@ def main(sitesfile):
           <table class="tg">
              <tr class="top"><th class=th>Certificate</th><th class=th>Issuer</th><th class=th>Days till expire</th></tr>
     """
+    blocks = """[
+      {
+          "type": "section",
+          "fields": [
+              {
+                  "type": "mrkdwn",
+                  "text": "*Certificate* and *Issuer*"
+              },
+              {
+                  "type": "mrkdwn",
+                  "text": "*Days till expire*"
+              }
+          ]
+      }
+    """
+    t = Template('{"type": "section","fields": [{"type": "mrkdwn","text": ${one}   ${two}},{"type": "mrkdwn","text": ${three}}]},')
     d={}
     for sites in array:
       certinfo = get_expiry_date(sites, 443)
@@ -60,28 +106,30 @@ def main(sitesfile):
         tgstyle="tg-norm"
       else:
         tgstyle="tg-alarm"
-      html=html+"""<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{} days</td></tr>
-      """.format(tgstyle,items[0],items[1][1],tgstyle,items[1][0])
+      html=html+"<tr><td class={}>{}</td> <td class=tg-norm>{}</td> <td class={}>{} days</td></tr>".format(tgstyle,items[0],items[1][1],tgstyle,items[1][0])
+      blocks = blocks + t.safe_substitute(one=items[0],two=items[1][1],three=items[1][0])
     html=html+"""
-          </table>
-       </body>
+        </table>
+      </body>
     </html>
     """
-    print(html)
+#    print(html)
+    blocks=blocks[:-1]
+    blocks=blocks+"]"
+    test = json.loads(json.dumps(blocks))
+#    print(test)
 
-    message = MIMEMultipart("alternative")
-    message["Subject"] = "multipart test"
-    message["From"] = 'script@localhost'
-    message["To"] = ['user1@gmail.com', 'user2@ua.fm']
+#    post_text_to_slack('Dude, this Slack message is coming from my Python program!')
+    post_blocks_to_slack("Script info",test);
 
-    message.attach(MIMEText(html, "html"))
-    with smtplib.SMTP('localhost') as server:
-       for receiver in message["To"]:
-         try:
-           server.sendmail(message["From"], receiver, message.as_string())
-         except:
-           print("error sending message to {}".format(receiver))
-       server.quit()
+#    message.attach(MIMEText(html, "html"))
+#    with smtplib.SMTP('localhost') as server:
+#       for receiver in receivers:
+#         try:
+#           server.sendmail(message["From"], receiver, message.as_string())
+#         except:
+#           print("error sending message to {}".format(receiver))
+#       server.quit()
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Sites list')
