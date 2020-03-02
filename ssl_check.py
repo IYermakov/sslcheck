@@ -10,15 +10,15 @@ from email.mime.multipart import MIMEMultipart
 import operator
 import requests
 import json, os, pprint
-from urllib import request, parse
 from string import Template
 
 def post_blocks_to_slack(text, blocks = None):
     return requests.post('https://slack.com/api/chat.postMessage', {
         'token': os.environ['SLACK_TOKEN'].encode('utf-8'),
+#        'channel': "DUA504ENP",
         'channel': "#alerts",
         'username': "script",
-        'blocks': json.dumps(blocks) if blocks else None
+        'blocks': blocks if blocks else None
     }).json()
 
 def get_expiry_date(host, port=443):
@@ -80,7 +80,7 @@ def main(sitesfile):
           ]
       },
     """
-    t = Template('{"type": "section","fields": [{"type": "mrkdwn","text": "${one}   ${two}"},{"type": "mrkdwn","text": "${three}"}]},')
+    t = Template('{"type": "section","fields": [{"type": "mrkdwn","text": "${one}   ${two}"},{"type": "mrkdwn","text": "${three}"}]},\n')
     d={}
     for sites in array:
       certinfo = get_expiry_date(sites, 443)
@@ -102,22 +102,19 @@ def main(sitesfile):
       </body>
     </html>
     """
+    blocks=blocks[:-2]+"]"
 #    print(html)
-    blocks=blocks[:-1]+"]"
 #    print(blocks)
-#    test = json.loads(json.dumps(blocks, indent=4, sort_keys=True))
-#    print(test)
-
     post_blocks_to_slack("Script info",blocks)
 
-#    message.attach(MIMEText(html, "html"))
-#    with smtplib.SMTP('localhost') as server:
-#       for receiver in receivers:
-#         try:
-#           server.sendmail(message["From"], receiver, message.as_string())
-#         except:
-#           print("error sending message to {}".format(receiver))
-#       server.quit()
+    message.attach(MIMEText(html, "html"))
+    with smtplib.SMTP('localhost') as server:
+       for receiver in receivers:
+         try:
+           server.sendmail(message["From"], receiver, message.as_string())
+         except:
+           print("error sending message to {}".format(receiver))
+       server.quit()
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Sites list')
