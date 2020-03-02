@@ -15,7 +15,6 @@ from string import Template
 def post_blocks_to_slack(text, blocks = None):
     return requests.post('https://slack.com/api/chat.postMessage', {
         'token': os.environ['SLACK_TOKEN'].encode('utf-8'),
-#        'channel': "DUA504ENP",
         'channel': "#alerts",
         'username': "script",
         'blocks': blocks if blocks else None
