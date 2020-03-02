@@ -2,14 +2,14 @@ import ssl
 import socket
 import datetime
 import argparse
-from datetime import date, timedelta
-from dateutil.parser import parse
+from datetime import timedelta
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import operator
 import requests
-import json, os, pprint
+import json
+import os
 from string import Template
 
 def post_blocks_to_slack(text, blocks = None):
@@ -34,7 +34,8 @@ def get_expiry_date(host, port=443):
       certissuer = issuer['commonName']
       return certdate, certissuer
     except:
-      return 'connection error','connection error'
+      return 'connection error', 'connection error'
+
 
 def main(sitesfile):
 
